@@ -1,0 +1,12 @@
+knitr
+ggplot2
+dplyr
+cowplot
+tibble
+ggalt
+lubridate
+permute
+lattice
+vegan
+TMB
+gllvm
