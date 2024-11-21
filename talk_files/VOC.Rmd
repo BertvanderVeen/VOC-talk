@@ -445,7 +445,7 @@ knitr::include_graphics("images/Minchin_1987.png")
 library(vegan)
 library(gllvm)
 # Download the minchin dataset
-minchin <- read.csv("https://raw.githubusercontent.com/BertvanderVeen/Examples/master/Minchin87_2b_counts.csv") # Data frmo minchin 1987
+minchin <- read.csv("../data/Minchin87_2b_counts.csv") # Data frmo minchin 1987
 # All missing values are zeros
 minchin[is.na(minchin)] <- 0
 minchin<-minchin[,-1]
@@ -818,10 +818,11 @@ So that we need to estimate fewer parameters, and can fit faster
 \alt<1>{
 \hfill \footnotesize This is a GLMM \normalsize
 \only<1>{
+\vspace*{1cm}
  \footnotesize \tikzmarknode{nu}{Induces between-column correlation} 
 
 \begin{tikzpicture}[overlay,remember picture]
-        \draw[->] (nu) -| ([xshift = -2.2cm]t4.south);
+        \draw[->] (nu) -| ([xshift = -1cm]t4.south);
 \end{tikzpicture}
 
 }
@@ -956,7 +957,7 @@ The model is flexible, $\tikzmarknode{n1}{\symbf{\Lambda}}$ can be all kinds of 
 ```{r clasrob, echo=F, message=F, warning=F, fig.show="hide", cache = TRUE, dev="png", dpi=150}
 library(vegan)
 # Download the minchin dataset
-minchin <- read.csv("https://raw.githubusercontent.com/BertvanderVeen/Examples/master/Minchin87_2b_counts.csv") # Data frmo minchin 1987
+minchin <- read.csv("../data/Minchin87_2b_counts.csv") # Data frmo minchin 1987
 # All missing values are zeros
 minchin[is.na(minchin)] <- 0
 minchin<-minchin[,-1]
@@ -1188,7 +1189,7 @@ Ya <- read.csv("../data/waddenY.csv")[,-c(1:2)];
 Ya <- Ya[, colSums(ifelse(Ya==0,0,1))>2]
 X <- read.csv("../data/waddenX.csv")
 X <- X[,!apply(X,2,anyNA)]
-X[,apply(X,2,is.numeric)] <- scale(X[,apply(X,2,is.numeric)])
+X[,unlist(lapply(X,is.numeric))] <- scale(X[,unlist(lapply(X,is.numeric))])
 ```
 
 ## Unconstrained ordination
@@ -1236,7 +1237,7 @@ gllvm::ordiplot(cord3, symbols=TRUE, pch=X$island, s.colors = as.character(facto
 ```{r cord4, echo = c(-2,-3), fig.height = 8, out.width="49%",warning=FALSE, message=FALSE, results = FALSE, fig.show="hold", cache = TRUE, seed = 1}
 cord4 <- gllvm(Ya, X = X, studyDesign = X, num.RR = 2,
               lv.formula = ~ elevation + silt_clay + season + TOC, 
-              row.eff = ~(1|island/transect),
+              row.eff = ~(1|island:transect),
               family = "negative.binomial", disp.formula = rep(1,ncol(Ya)))
 gllvm::ordiplot(cord4, symbols=TRUE, pch=X$island, s.colors = as.character(factor(X$island,labels  = c("blue", "green", "black"))), cex.env = 1.5, main = NA)
 coefplot(cord4, which.Xcoef = "elevation")
@@ -1272,7 +1273,7 @@ assuming normality and unbiasedness for both RHS quantities, we also have
 ```{r cord4b, echo = c(-2,-3,-4), fig.height = 10, out.width="49%",warning=FALSE, message=FALSE, results = FALSE, fig.show="hide", cache = TRUE, dev = "png"}
 cord4b <- gllvm(Ya, X = X, studyDesign = X, num.RR = 2, randomB = "LV",
               lv.formula = ~ (0+elevation + silt_clay + season + TOC|1), 
-              row.eff = ~(1|island/transect),
+              row.eff = ~(1|island:transect), optimizer = "nlminb",
               family = "negative.binomial", disp.formula = rep(1,ncol(Ya)))
 gllvm::ordiplot(cord4b, symbols=TRUE, pch=X$island, s.colors = as.character(factor(X$island,labels  = c("blue", "green", "black"))), cex.env = 1.5, main = NA)
 randomCoefplot(cord4b, which.Xcoef = "elevation")
@@ -1306,7 +1307,7 @@ par(mar=c(5,4,1,2)+0.1)
 TMB::openmp(7,autopar=TRUE)
 cord5 <- gllvm(Ya, X = X, studyDesign = X, num.RR = 2,
               lv.formula = ~ elevation + silt_clay + season + TOC, 
-              formula = ~diag(1|island/transect),
+              formula = ~diag(1|island/transect), starting.val = "zero",
               family = "negative.binomial", disp.formula = rep(1,ncol(Ya)), 
               Ab.struct = "diagonal", optim.method = "L-BFGS-B")
 gllvm::ordiplot(cord5, symbols=TRUE, pch=X$island, s.colors = as.character(factor(X$island,labels  = c("blue", "green", "black"))), cex.env = 1.5, main = NA)
@@ -1322,9 +1323,9 @@ cnord1 <- gllvm(Ya, X = X, studyDesign = X, num.lv.c = 2,
                lv.formula = ~ elevation + silt_clay + season + TOC, 
                formula = ~diag(1|island/transect),
                family = "negative.binomial", disp.formula = rep(1,ncol(Ya)), 
-               seed = 1, sd.errors = FALSE,
+               seed = 1,
                Ab.struct = "diagonal", optim.method = "L-BFGS-B")
-gllvm::ordiplot(cnord1, symbols=TRUE, pch=X$island, s.colors = as.character(factor(X$island,labels  = c("blue", "green", "black"))), cex.env = 1.5, main = NA, xlim = c(-3,1))
+gllvm::ordiplot(cnord1, symbols=TRUE, pch=X$island, s.colors = as.character(factor(X$island,labels  = c("blue", "green", "black"))), cex.env = 1.5, main = NA)
 ```
 
 # Part IV
